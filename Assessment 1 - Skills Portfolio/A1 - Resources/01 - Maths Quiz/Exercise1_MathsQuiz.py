@@ -41,7 +41,7 @@ def set_bg(image_path):
         )
         bg_photo = ImageTk.PhotoImage(img)
 
-        # Update the background if it already exists, else create a new one
+        # Update the background if it already exists, else create a new one.
         if bg_label:
             bg_label.config(image=bg_photo)
             bg_label.image = bg_photo
