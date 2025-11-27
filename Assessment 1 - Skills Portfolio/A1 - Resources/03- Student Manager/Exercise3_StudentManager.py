@@ -76,7 +76,7 @@ class StudentManagerHybrid:
         self.root.state("zoomed")  # Maximize window
         self.root.configure(bg=self.BG_LIGHT)
 
-        # Try to set window icon if logo exists
+        # Try to set main window icon if logo exists
         try:
             self.icon_img = tk.PhotoImage(file=LOGO_PATH)
             self.root.iconphoto(False, self.icon_img)
@@ -149,6 +149,13 @@ class StudentManagerHybrid:
         win.title(title)
         win.geometry("300x150")
         win.configure(bg=self.BG_DARK)
+        
+        # ------------------ Set popup icon ------------------
+        try:
+            logo_img = tk.PhotoImage(file=LOGO_PATH)  # Load logo.png
+            win.iconphoto(False, logo_img)            # Set as window icon
+        except Exception as e:
+            print(f"[⚠️] Could not load popup icon: {e}")
 
         tk.Label(win, text=prompt, bg=self.BG_DARK, fg=self.TEXT_WHITE,
                  font=("Arial", 12, "bold")).pack(pady=15)
@@ -277,6 +284,13 @@ class StudentManagerHybrid:
         win.title("Sort Records")
         win.geometry("300x180")
         win.configure(bg=self.BG_DARK)
+        
+        # ------------------ Set popup icon ------------------
+        try:
+            logo_img = tk.PhotoImage(file=LOGO_PATH)  # Load logo.png
+            win.iconphoto(False, logo_img)            # Set as window icon
+        except Exception as e:
+            print(f"[⚠️] Could not load popup icon: {e}")
 
         tk.Label(win, text="Sort by percentage:", bg=self.BG_DARK, fg=self.TEXT_WHITE,
                  font=("Arial", 12, "bold")).pack(pady=15)
@@ -312,6 +326,13 @@ class StudentManagerHybrid:
         win.title("Add Student")
         win.geometry("330x480")
         win.configure(bg=self.BG_DARK)
+        
+        # ------------------ Set popup icon ------------------
+        try:
+            logo_img = tk.PhotoImage(file=LOGO_PATH)
+            win.iconphoto(False, logo_img)
+        except Exception as e:
+            print(f"[⚠️] Could not load popup icon: {e}")
 
         tk.Label(win, text="Add New Student", bg=self.BG_DARK, fg=self.TEXT_WHITE,
                  font=("Arial", 18, "bold")).pack(pady=10)
@@ -377,80 +398,65 @@ class StudentManagerHybrid:
                 self.edit_student_window(s)
                 return
         messagebox.showerror("Error","Student not found.")
-def edit_student_window(self, s):
-    # Create a new top-level window for updating student details
-    win = tk.Toplevel()
-    win.title(f"Update {s['name']}")  # Set window title with student's name
-    win.geometry("330x420")  # Set window size
-    win.configure(bg=self.BG_DARK)  # Set background color
-    
-    # Title label for the update window
-    tk.Label(win, text="Update Student", bg=self.BG_DARK, fg=self.TEXT_WHITE,
-             font=("Arial", 18, "bold")).pack(pady=10)
-    
-    # Create labels and entry fields for student attributes
-    labels = ["Name", "C1", "C2", "C3", "Exam"]
-    entries = {}
-    for lbl in labels:
-        # Label for each attribute
-        tk.Label(win, text=lbl, bg=self.BG_DARK, fg=self.TEXT_WHITE, font=("Arial", 12, "bold")).pack(pady=5)
-        # Entry field for input
-        e = tk.Entry(win, bg="#dcdde1", fg="#2f3640", font=("Arial", 12), relief="flat")
-        e.pack(pady=2, ipadx=4, ipady=4)
-        entries[lbl] = e  # Store entry widgets in a dictionary for easy access
-    
-    # Pre-fill entry fields with current student data
-    entries["Name"].insert(0, s["name"])
-    entries["C1"].insert(0, s["c1"])
-    entries["C2"].insert(0, s["c2"])
-    entries["C3"].insert(0, s["c3"])
-    entries["Exam"].insert(0, s["exam"])
 
-    # Function to save changes when the user clicks "SAVE CHANGES"
-    def save_changes():
+    def edit_student_window(self, student):
+        # Popup window to edit existing student info
+        win = tk.Toplevel()
+        win.title("Edit Student")
+        win.geometry("330x480")
+        win.configure(bg=self.BG_DARK)
+
+        # ------------------ Set popup icon ------------------
         try:
-            # Get values from entries and validate
-            name_val = entries["Name"].get().strip()
-            if name_val == "":
-                messagebox.showerror("Error", "Name cannot be empty.")  # Name cannot be blank
+            logo_img = tk.PhotoImage(file=LOGO_PATH)
+            win.iconphoto(False, logo_img)
+        except Exception as e:
+            print(f"[⚠️] Could not load popup icon: {e}")
+
+        tk.Label(win, text=f"Edit Student #{student['code']}", bg=self.BG_DARK, fg=self.TEXT_WHITE,
+                 font=("Arial", 18, "bold")).pack(pady=10)
+
+        labels = ["Name","C1","C2","C3","Exam"]
+        entries = {}
+
+        # Create entry widgets with pre-filled values
+        for lbl in labels:
+            tk.Label(win, text=lbl, bg=self.BG_DARK, fg=self.TEXT_WHITE, font=("Arial", 12, "bold")).pack(pady=5)
+            e = tk.Entry(win, bg="#dcdde1", fg="#2f3640", font=("Arial", 12), relief="flat")
+            e.pack(pady=2, ipadx=4, ipady=4)
+            entries[lbl] = e
+
+        # Pre-fill existing values
+        entries["Name"].insert(0, student["name"])
+        entries["C1"].insert(0, str(student["c1"]))
+        entries["C2"].insert(0, str(student["c2"]))
+        entries["C3"].insert(0, str(student["c3"]))
+        entries["Exam"].insert(0, str(student["exam"]))
+
+        def save_edit():
+            # Save edited data back to student object
+            try:
+                student["name"] = entries["Name"].get().strip()
+                student["c1"] = int(entries["C1"].get())
+                student["c2"] = int(entries["C2"].get())
+                student["c3"] = int(entries["C3"].get())
+                student["exam"] = int(entries["Exam"].get())
+                if student["name"] == "":
+                    messagebox.showerror("Error","Name cannot be empty.")
+                    return
+            except ValueError:
+                messagebox.showerror("Error","C1, C2, C3, Exam must be integers.")
                 return
-            # Convert coursework and exam scores to integers
-            c1_val = int(entries["C1"].get())
-            c2_val = int(entries["C2"].get())
-            c3_val = int(entries["C3"].get())
-            exam_val = int(entries["Exam"].get())
-        except ValueError:
-            # Show error if any value is not a valid integer
-            messagebox.showerror("Error", "C1, C2, C3, and Exam must be integers.")
-            return
+            save_students(self.students)
+            messagebox.showinfo("Updated","Student updated successfully.")
+            win.destroy()
+            self.view_all()
 
-        # Update student dictionary with new values
-        s["name"] = name_val
-        s["c1"] = c1_val
-        s["c2"] = c2_val
-        s["c3"] = c3_val
-        s["exam"] = exam_val
-
-        # Save updated student list to file
-        save_students(self.students)
-        messagebox.showinfo("Updated", "Student updated successfully.")
-        
-        # Close the edit window and refresh the student view
-        win.destroy()
-        self.view_all()
-
-    # Save button to trigger save_changes function
-    tk.Button(win, text="SAVE CHANGES", command=save_changes, bg=self.BLUE, fg=self.TEXT_WHITE,
-              font=("Arial", 14, "bold"), relief="flat", width=20).pack(pady=20)
-
+        tk.Button(win, text="SAVE CHANGES", command=save_edit, bg=self.GREEN, fg=self.TEXT_WHITE,
+                  font=("Arial", 14, "bold"), relief="flat", width=20).pack(pady=20)
 
 # ---------------- RUN APPLICATION ----------------
 if __name__ == "__main__":
-    # Create the main Tkinter root window
     root = tk.Tk()
-    
-    # Initialize the StudentManagerHybrid application with the root window
     app = StudentManagerHybrid(root)
-    
-    # Start the Tkinter main event loop
     root.mainloop()
